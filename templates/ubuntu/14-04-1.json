@@ -1,0 +1,76 @@
+{
+	"builders": [
+		{
+			"name": "ubuntu-14.04.1.amd64.virtualbox",
+			"type": "virtualbox-iso",
+			"guest_os_type": "Ubuntu_64",
+			"iso_urls": [
+				"/home/alok/iso/ubuntu-14.04.1-server-amd64.iso",
+				"http://old-releases.ubuntu.com/releases/14.04.1/ubuntu-14.04.1-server-amd64.iso"
+			],
+			"iso_checksum_type": "sha256",
+			"iso_checksum": "946a6077af6f5f95a51f82fdc44051c7aa19f9cfc5f737954845a6050543d7c2",
+			"headless": true,
+			"http_directory": "http/ubuntu",
+			"boot_wait": "10s",
+			"boot_command": [
+				"<esc><wait>",
+				"<esc><wait>",
+				"<enter><wait>",
+				"/install/vmlinuz",
+				" auto=true",
+				" priority=critical",
+				" initrd=/install/initrd.gz",
+				" preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+				" -- ",
+				"<enter>"
+			],
+			"ssh_username": "vagrant",
+			"ssh_password": "vagrant",
+			"ssh_port": 22,
+			"ssh_wait_timeout": "10000s",
+			"disk_size": 81920,
+			"shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+			"guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+			"virtualbox_version_file": ".vbox_version",
+			"vm_name": "packer-ubuntu-14.04.1-amd64",
+			"vboxmanage": [
+				[
+				  "modifyvm",
+				  "{{.Name}}",
+				  "--memory",
+				  "512"
+				],
+				[
+				  "modifyvm",
+				  "{{.Name}}",
+				  "--cpus",
+				  "2"
+				]
+			  ]
+		}
+	],
+
+	"provisioners": [
+		{
+			"type": "shell",
+			"execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+			"override": {
+				"ubuntu-14.04.1.amd64.virtualbox": {
+					"scripts": [
+						"scripts/ubuntu/setup.sh",
+						"scripts/ubuntu/cleanup.sh"
+  					]
+				}
+			}
+		}
+	],
+
+
+  	"post-processors": [
+    		{
+      			"type": "vagrant",
+      			"output": "builds/{{.Provider}}-ubuntu14.04.1.box"
+    		}
+  	]
+}
